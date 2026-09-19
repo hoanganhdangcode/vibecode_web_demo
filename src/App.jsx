@@ -38,7 +38,7 @@ function Experience() {
         visible={showResult}
         fortune={fortune}
         alreadyRead={fromStorage}
-        onReroll={DENY_RETRY_SAME_DAY ? undefined : onReveal}
+        onReset={DENY_RETRY_SAME_DAY ? undefined : onReset}
       />
     </>
   )

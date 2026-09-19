@@ -6,7 +6,7 @@ const RESULT_KEY = 'fortune-result'
 
 // Khi true: giữ logic hiện tại — mỗi ngày chỉ gieo đúng 1 lần (reload không gieo lại).
 // Khi false: cho phép gieo lại trong ngày, card kết quả hiện nút "Rút lại".
-export const DENY_RETRY_SAME_DAY = false //cho phép rút lại
+export const DENY_RETRY_SAME_DAY = false //cho phép rút lại, do not edit.
 
 function todayKey() {
   const d = new Date()
