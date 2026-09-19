@@ -12,6 +12,8 @@ const STICK_LEN = 0.68
 const CYL_TOP_R = 0.22
 const CYL_BOT_R = 0.19
 const CYL_H = 0.55
+const HIT_R = 0.35
+const HIT_H = 1.05
 
 function mulberry32(seed) {
   return function () {
@@ -122,6 +124,18 @@ export default function FortuneJar({
       <mesh position={[0, CYL_H - 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <torusGeometry args={[CYL_BOT_R + 0.015, 0.012, 10, 32]} />
         <meshStandardMaterial color="#c9a227" metalness={0.45} roughness={0.35} />
+      </mesh>
+
+      <mesh position={[0, CYL_H / 2, 0]}>
+        <cylinderGeometry args={[HIT_R, HIT_R, HIT_H, 16, 1, true]} />
+        <meshBasicMaterial
+          transparent
+          opacity={0}
+          depthWrite={false}
+          colorWrite={false}
+          toneMapped={false}
+          fog={false}
+        />
       </mesh>
 
       <Glow active={usable} />
