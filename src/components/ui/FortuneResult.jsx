@@ -1,3 +1,5 @@
+import NearbyPlaces from './NearbyPlaces.jsx'
+
 export default function FortuneResult({ visible = false, fortune = null, alreadyRead = false, onReset = null }) {
   if (!fortune) return null
 
@@ -13,6 +15,7 @@ export default function FortuneResult({ visible = false, fortune = null, already
           </button>
         )}
       </div>
+      <NearbyPlaces visible={visible} fortune={fortune} />
     </div>
   )
 }
