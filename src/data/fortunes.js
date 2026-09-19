@@ -1,5 +1,4 @@
 export const FORTUNES = {
-  0: { food: 'Cơm gà', description: '' },
   1: { food: 'Cơm hộp', description: '' },
   2: { food: 'Cơm tấm sườn bì chả', description: '' },
   3: { food: 'Bánh mì chảo', description: '' },
@@ -36,7 +35,7 @@ export const FORTUNES = {
   34: { food: 'Hủ tiếu', description: '' },
   35: { food: 'Cháo sườn', description: '' },
   36: { food: 'Rau má', description: 'Nơi tôi sinh ra, mảnh đất chan chứa bao la tình thương mặn mà, êm ả. Nới cây rau má mọc trên ngọn núi đá ' },
-  37: { food: 'Cháo cá', description: '' },
+  37: { food: 'Cá rô cây', description: '' },
   38: { food: 'Xôi mặn', description: '' },
   39: { food: 'Xôi xéo', description: '' },
   40: { food: 'Bánh mì thịt nướng', description: '' },
@@ -55,4 +54,6 @@ export const FORTUNES = {
   54: { food: 'Bún cá cay', description: '' },
   55: { food: 'Miến lươn', description: '' },
   56: { food: 'Đồ chay', description: '' },
+  57: { food: 'Cơm gà', description: '' },
+  58: { food: 'Cháo cá', description: '' },
 }
