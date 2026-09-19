@@ -10,6 +10,61 @@ body,
   -webkit-font-smoothing: antialiased;
 }
 
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b0704;
+  transition: opacity 0.5s ease;
+}
+.loading-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.loading-ornament {
+  color: #ffd27a;
+  font-size: 24px;
+  text-align: center;
+  animation: loading-pulse 1.4s ease-in-out infinite;
+  text-shadow: 0 0 16px rgba(255, 180, 90, 0.8);
+}
+.loading-bar {
+  margin-top: 18px;
+  width: 160px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 210, 122, 0.15);
+  overflow: hidden;
+}
+.loading-bar span {
+  display: block;
+  height: 100%;
+  background: #ffd27a;
+  box-shadow: 0 0 8px rgba(255, 210, 122, 0.8);
+  transition: width 0.3s ease;
+}
+.loading-text {
+  margin-top: 14px;
+  color: #a97b4e;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
 .instruction {
   position: fixed;
   left: 50%;

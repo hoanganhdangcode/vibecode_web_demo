@@ -3,6 +3,7 @@ import { RitualProvider, useRitual, RITUAL_PHASES } from './context/RitualContex
 import ShrineScene from './components/scene/ShrineScene.jsx'
 import Instruction from './components/ui/Instruction.jsx'
 import FortuneResult from './components/ui/FortuneResult.jsx'
+import LoadingScreen from './components/ui/LoadingScreen.jsx'
 import { useDailyFortune, DENY_RETRY_SAME_DAY } from './hooks/useDailyFortune.js'
 import { ensureAudio, playRevealChime } from './sounds/ritualSounds.js'
 
@@ -33,6 +34,7 @@ function Experience() {
   return (
     <>
       <ShrineScene interactive={canDraw} onActivate={onActivate} />
+      <LoadingScreen />
       <Instruction forceHidden={showResult} />
       <FortuneResult
         visible={showResult}
