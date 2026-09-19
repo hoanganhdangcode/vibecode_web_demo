@@ -1,0 +1,108 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0b0704;
+  font-family: "Be Vietnam Pro", "Segoe UI", "Arial", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.instruction {
+  position: fixed;
+  left: 50%;
+  bottom: 9%;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+  color: #ffd27a;
+  font-size: clamp(16px, 3.2vmin, 26px);
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-shadow: 0 0 14px rgba(255, 180, 90, 0.75);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 210, 122, 0.25);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.instruction.visible {
+  opacity: 1;
+  animation: instruction-bob 2.6s ease-in-out infinite;
+}
+
+.instruction-star {
+  margin: 0 10px;
+}
+
+@keyframes instruction-bob {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-6px);
+  }
+}
+
+.fortune-result {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  padding: 24px;
+}
+
+.fortune-card {
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  max-width: min(420px, 92vw);
+  background: linear-gradient(160deg, rgba(30, 18, 8, 0.92), rgba(15, 9, 4, 0.95));
+  border: 1px solid rgba(255, 210, 122, 0.4);
+  border-radius: 16px;
+  padding: 30px 34px;
+  text-align: center;
+  box-shadow:
+    0 0 40px rgba(255, 150, 60, 0.18),
+    0 0 80px rgba(255, 120, 40, 0.12),
+    inset 0 0 60px rgba(255, 170, 90, 0.06);
+  backdrop-filter: blur(6px);
+}
+
+.fortune-result.visible .fortune-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.fortune-kicker {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: #d8a75c;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.fortune-name {
+  margin: 0 0 10px;
+  font-family: "Source Serif 4", "Be Vietnam Pro", serif;
+  font-size: clamp(20px, 4.6vmin, 30px);
+  color: #ffe3b0;
+  letter-spacing: 0.06em;
+}
+
+.fortune-desc {
+  margin: 0;
+  font-size: clamp(15px, 3vmin, 18px);
+  line-height: 1.55;
+  color: #f0d9b0;
+}
