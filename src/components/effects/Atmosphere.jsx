@@ -1,10 +1,13 @@
 import { Sparkles } from '@react-three/drei'
 
+const IS_MOBILE =
+  typeof window !== 'undefined' && window.innerWidth < 768
+
 export default function Atmosphere() {
   return (
     <group>
       <Sparkles
-        count={70}
+        count={IS_MOBILE ? 22 : 70}
         scale={[6, 3, 6]}
         size={1.2}
         speed={0.15}

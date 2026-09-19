@@ -41,7 +41,7 @@ export function playRitualTimeline({ refs, camera, setPhase }) {
 
   if (jar) {
     tl.to(jar.rotation, { z: 0.05, duration: 0.2, ease: 'power1.in' }, 1.85)
-      .to(jar.position, { y: 0.06, duration: 0.3, ease: 'power2.out' }, 2.0)
+      .to(jar.position, { y: 0.535, duration: 0.3, ease: 'power2.out' }, 2.0)
       .to(
         jar.rotation,
         {
@@ -69,7 +69,7 @@ export function playRitualTimeline({ refs, camera, setPhase }) {
         2.1
       )
       .to(jar.rotation, { z: 0, y: 0, duration: 0.1, ease: 'power4.in' }, '+=0.02')
-      .to(jar.position, { y: 0, duration: 0.2, ease: 'power2.inOut' }, '<')
+      .to(jar.position, { y: 0.475, duration: 0.2, ease: 'power2.inOut' }, '<')
   }
 
   tl.call(() => setPhase(RITUAL_PHASES.DRAWING_FORTUNE), [], 3.7)

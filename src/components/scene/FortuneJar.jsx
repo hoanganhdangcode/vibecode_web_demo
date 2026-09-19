@@ -87,8 +87,10 @@ export default function FortuneJar({
     g.scale.y = g.scale.x
     g.scale.z = g.scale.x
 
-    const floatY = isIdle ? baseY.current + Math.sin(t * 1.5) * 0.03 : baseY.current
-    g.position.y += (floatY - g.position.y) * 0.1
+    if (isIdle) {
+      const floatY = baseY.current + Math.sin(t * 1.5) * 0.03
+      g.position.y += (floatY - g.position.y) * 0.1
+    }
   })
 
   return (

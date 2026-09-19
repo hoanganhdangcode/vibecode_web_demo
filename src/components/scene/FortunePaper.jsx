@@ -40,11 +40,7 @@ export default function FortunePaper({ position = [0, 1.06, 0.16] }) {
       <group ref={bob}>
         <mesh position={[0, 0.22, 0]}>
           <boxGeometry args={[0.1, 0.52, 0.014]} />
-          <meshStandardMaterial color="#e8d9b0" roughness={0.8} side={DoubleSide} />
-        </mesh>
-        <mesh position={[0, 0.52, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.028, 0.028, 0.016, 8]} />
-          <meshStandardMaterial color="#c9a227" metalness={0.5} roughness={0.35} />
+          <meshStandardMaterial color="#a32a20" roughness={0.7} side={DoubleSide} />
         </mesh>
         <mesh ref={flash} position={[0, 0.22, -0.09]}>
           <planeGeometry args={[0.75, 1.5]} />

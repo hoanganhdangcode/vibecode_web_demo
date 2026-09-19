@@ -1,6 +1,9 @@
 import { Sparkles } from '@react-three/drei'
 import { useRitual, RITUAL_PHASES } from '../../context/RitualContext.jsx'
 
+const IS_MOBILE =
+  typeof window !== 'undefined' && window.innerWidth < 768
+
 export default function Glow({ active: propActive }) {
   const { phase } = useRitual()
   const active = propActive !== undefined ? propActive : phase === RITUAL_PHASES.IDLE
@@ -10,7 +13,7 @@ export default function Glow({ active: propActive }) {
   return (
     <group>
       <Sparkles
-        count={90}
+        count={IS_MOBILE ? 40 : 90}
         scale={[0.85, 1.9, 0.85]}
         size={0.04}
         speed={0.35}
@@ -19,7 +22,7 @@ export default function Glow({ active: propActive }) {
         noise={0.6}
       />
       <Sparkles
-        count={28}
+        count={IS_MOBILE ? 12 : 28}
         scale={[0.42, 1.25, 0.42]}
         size={0.07}
         speed={0.5}
