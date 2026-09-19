@@ -14,7 +14,7 @@ import { useRitual, RITUAL_PHASES } from '../../context/RitualContext.jsx'
 const INCENSE_Y = 0.12
 const INCENSE_Z_FRONT = -1.2
 
-const INITIAL_CAMERA = { x: 0, y: 1.7, z: 4.6 }
+const INITIAL_CAMERA = { x: 0, y: 2.5, z: 4.6 }
 const INITIAL_TARGET = [0, 1.3, 0]
 
 function RitualDirector() {
@@ -65,7 +65,7 @@ function RitualResetDirector() {
     tw.to(camera.position, INITIAL_CAMERA, 0)
     const paper = refs.paper
     if (paper) {
-      tw.to(paper.position, { x: 0, y: 0.5, z: -1.05, duration: 1.2 }, 0)
+      tw.to(paper.position, { x: 0, y: 0.475, z: -1.05, duration: 1.2 }, 0)
       tw.to(paper.rotation, { x: 0, y: 0, z: 0, duration: 0.9 }, 0)
       tw.to(paper.scale, { x: 1, y: 1, z: 1, duration: 0.9 }, 0)
     }
@@ -109,7 +109,7 @@ export default function ShrineScene({ interactive = true, onActivate }) {
 
   return (
     <Canvas
-      camera={{ position: [0, 1.7, 4.6], fov: 50 }}
+      camera={{ position: [0, 2.5, 4.6], fov: 50 }}
       shadows
       dpr={[1, 1.75]}
     >
@@ -155,9 +155,9 @@ export default function ShrineScene({ interactive = true, onActivate }) {
       <Suspense fallback={null}>
         <Shrine onBox={setShrineBox} />
       </Suspense>
-      <FortuneJar position={[0, 0.5, -1.05]} interactive={interactive} onActivate={onActivate} />
+      <FortuneJar position={[0, 0.475, -1.05]} interactive={interactive} onActivate={onActivate} />
       {incensePos && <Incense position={incensePos} />}
-      <FortunePaper position={[0, 0.5, -1.05]} />
+      <FortunePaper position={[0, 0.475, -1.05]} />
       <RitualHand />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>

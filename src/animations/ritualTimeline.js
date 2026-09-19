@@ -9,10 +9,10 @@ export function playRitualTimeline({ refs, camera, setPhase }) {
   const paper = refs.paper
   if (jar) {
     jar.rotation.set(0, 0, 0)
-    jar.position.y = 0.5
+    jar.position.y = 0.475
   }
   if (paper) {
-    paper.position.set(0, 0.5, -1.05)
+    paper.position.set(0, 0.475, -1.05)
     paper.rotation.set(0, 0, 0)
     paper.scale.setScalar(1)
   }
