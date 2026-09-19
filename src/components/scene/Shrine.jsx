@@ -3,7 +3,7 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import Signboard from './Signboard.jsx'
 
-const MODEL_URL = '/models/truongcongl.glb'
+const MODEL_URL = `${import.meta.env.BASE_URL}models/truongcongl.glb`
 
 export default function Shrine({
   height = 4.2,

@@ -3,7 +3,7 @@ import { useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 
 export default function Signboard({ width, height, depth = 0.06, position = [0, 0, 0] }) {
-  const map = useTexture('/textures/signboard.webp')
+  const map = useTexture(`${import.meta.env.BASE_URL}textures/signboard.webp`)
 
   const materials = useMemo(() => {
     const wood = new THREE.MeshStandardMaterial({
