@@ -238,42 +238,12 @@ body,
   transform: translateY(0) scale(1);
 }
 
-.nearby-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
 .nearby-title {
   margin: 0 0 6px;
   font-family: "Source Serif 4", "Be Vietnam Pro", serif;
   font-size: 18px;
   letter-spacing: 0.1em;
   color: #ffe3b0;
-}
-
-.nearby-source {
-  margin-bottom: 6px;
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  padding: 2px 6px;
-  border-radius: 999px;
-  white-space: nowrap;
-  text-transform: uppercase;
-  font-family: "Be Vietnam Pro", sans-serif;
-}
-
-.nearby-source.sheet {
-  color: #b8e08a;
-  background: rgba(108, 138, 43, 0.2);
-  border: 1px solid rgba(184, 224, 138, 0.4);
-}
-
-.nearby-source.mock {
-  color: #d8a75c;
-  background: rgba(216, 167, 92, 0.12);
-  border: 1px solid rgba(216, 167, 92, 0.35);
 }
 
 .nearby-filter {

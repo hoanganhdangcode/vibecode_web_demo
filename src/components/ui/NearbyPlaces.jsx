@@ -6,7 +6,7 @@ import { haversine, formatDistance } from '../../utils/geo.js'
 const MAX_KM = 10
 
 export default function NearbyPlaces({ visible = false, fortune = null }) {
-  const { places, source } = useRestaurants()
+  const { places } = useRestaurants()
   const { lat, lng } = useUserLocation()
   const hasLoc = lat != null && lng != null
   const [maxKm, setMaxKm] = useState(MAX_KM)
@@ -49,10 +49,7 @@ export default function NearbyPlaces({ visible = false, fortune = null }) {
 
   return (
     <aside className="nearby-box" aria-hidden={!visible}>
-      <div className="nearby-head">
-        <h2 className="nearby-title">Quán gần đây</h2>
-        <span className={`nearby-source ${source}`}>{source === 'sheet' ? 'Nguồn: Sheet' : 'Nguồn: mock'}</span>
-      </div>
+      <h2 className="nearby-title">Quán gần đây</h2>
       <div className="nearby-filter">
         <label htmlFor="nearby-range">Trong phạm vi</label>
         <input

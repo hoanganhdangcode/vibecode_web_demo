@@ -127,54 +127,57 @@ function fetchSheetJsonp() {
   })
 }
 
-export function useRestaurants() {
-  const [state, setState] = useState({ places: NEARBY_PLACES, source: 'mock' })
+function readCache() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY)
+    if (cached) {
+      const { items } = JSON.parse(cached)
+      if (Array.isArray(items) && items.length) return items
+    }
+  } catch {
+    // cache hỏng -> bỏ qua
+  }
+  return null
+}
 
-  useEffect(() => {
-    let cancelled = false
+// Singleton: bắt đầu tải 1 lần ngay khi module được import (song song với khởi động app).
+const listeners = new Set()
+const cachedPlaces = readCache()
+let cache = { places: cachedPlaces || NEARBY_PLACES, source: cachedPlaces ? 'sheet' : 'mock' }
 
-    const apply = (items) => {
-      if (cancelled) return
+function setData(places, source) {
+  cache = { places, source }
+  listeners.forEach((fn) => fn(cache))
+}
+
+function startLoad() {
+  fetchSheetJsonp()
+    .then(buildList)
+    .then((items) => {
       if (Array.isArray(items) && items.length) {
-        setState({ places: items, source: 'sheet' })
+        setData(items, 'sheet')
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }))
         } catch {
-          // lưu cache hỏng -> bỏ qua
-        }
-      }
-    }
-
-    // Luôn gọi mới mỗi khi mount (mỗi lần box hiển thị) -> sửa sheet là thấy ngay.
-    fetchSheetJsonp()
-      .then(buildList)
-      .then((items) => {
-        if (cancelled) return
-        if (items.length) {
-          apply(items)
-        } else {
-          throw new Error('sheet empty')
-        }
-      })
-      .catch(() => {
-        // fallback: cache cũ -> mock local
-        let fromCache = null
-        try {
-          const cached = localStorage.getItem(CACHE_KEY)
-          if (cached) {
-            const { items } = JSON.parse(cached)
-            if (Array.isArray(items) && items.length) fromCache = items
-          }
-        } catch {
           // bỏ qua
         }
-        if (cancelled) return
-        if (fromCache) setState({ places: fromCache, source: 'sheet' })
-        else setState({ places: NEARBY_PLACES, source: 'mock' })
-      })
+      }
+    })
+    .catch(() => {
+      // fetch lỗi -> giữ cache/mock hiện có, không ghi đè
+    })
+}
 
+startLoad()
+
+export function useRestaurants() {
+  const [state, setState] = useState(cache)
+
+  useEffect(() => {
+    setState(cache)
+    listeners.add(setState)
     return () => {
-      cancelled = true
+      listeners.delete(setState)
     }
   }, [])
 
