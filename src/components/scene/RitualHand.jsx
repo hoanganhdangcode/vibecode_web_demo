@@ -1,4 +1,5 @@
 import { useRitual } from '../../context/RitualContext.jsx'
+import Lighter from './Lighter.jsx'
 
 export default function RitualHand() {
   const { register } = useRitual()
@@ -13,6 +14,7 @@ export default function RitualHand() {
         <sphereGeometry args={[0.13, 16, 12]} />
         <meshStandardMaterial color="#d9a06b" roughness={0.7} />
       </mesh>
+      <Lighter />
     </group>
   )
 }
