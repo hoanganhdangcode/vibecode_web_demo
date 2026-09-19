@@ -1,4 +1,4 @@
-export default function FortuneResult({ visible = false, fortune = null, alreadyRead = false }) {
+export default function FortuneResult({ visible = false, fortune = null, alreadyRead = false, onReset = null }) {
   if (!fortune) return null
 
   return (
@@ -7,6 +7,11 @@ export default function FortuneResult({ visible = false, fortune = null, already
         <div className="fortune-kicker">{alreadyRead ? 'Quẻ hôm nay đã gieo' : '✦ quẻ của bạn ✦'}</div>
         <h1 className="fortune-name">{fortune.name}</h1>
         <p className="fortune-desc">{fortune.description}</p>
+        {onReset && (
+          <button type="button" className="fortune-reroll" onClick={onReset}>
+            ✦ Rút lại ✦
+          </button>
+        )}
       </div>
     </div>
   )

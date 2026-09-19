@@ -4,6 +4,10 @@ import { FORTUNES } from '../data/fortunes.js'
 const DATE_KEY = 'fortune-date'
 const RESULT_KEY = 'fortune-result'
 
+// Khi true: giữ logic hiện tại — mỗi ngày chỉ gieo đúng 1 lần (reload không gieo lại).
+// Khi false: cho phép gieo lại trong ngày, card kết quả hiện nút "Rút lại".
+export const DENY_RETRY_SAME_DAY = false //cho phép rút lại
+
 function todayKey() {
   const d = new Date()
   const month = `${d.getMonth() + 1}`.padStart(2, '0')
@@ -15,6 +19,7 @@ export function useDailyFortune() {
   const [fortune, setFortune] = useState(null)
   const [ready, setReady] = useState(false)
   const [canDraw, setCanDraw] = useState(true)
+  const [fromStorage, setFromStorage] = useState(false)
 
   useEffect(() => {
     const today = todayKey()
@@ -25,7 +30,8 @@ export function useDailyFortune() {
         const saved = FORTUNES.find((f) => f.id === storedId) || null
         if (saved) {
           setFortune(saved)
-          setCanDraw(false)
+          setCanDraw(DENY_RETRY_SAME_DAY ? false : true)
+          setFromStorage(true)
         }
       }
     } catch {
@@ -45,8 +51,14 @@ export function useDailyFortune() {
     }
     setFortune(picked)
     setCanDraw(false)
+    setFromStorage(false)
     return picked
   }, [])
 
-  return { fortune, ready, canDraw, draw }
+  const resetToInitial = useCallback(() => {
+    setCanDraw(true)
+    setFromStorage(false)
+  }, [])
+
+  return { fortune, ready, canDraw, draw, fromStorage, resetToInitial }
 }

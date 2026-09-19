@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { AdaptiveDpr, OrbitControls } from '@react-three/drei'
+import gsap from 'gsap'
 import Shrine from './Shrine.jsx'
 import FortuneJar from './FortuneJar.jsx'
 import Incense from './Incense.jsx'
@@ -13,6 +14,9 @@ import { useRitual, RITUAL_PHASES } from '../../context/RitualContext.jsx'
 const INCENSE_Y = 0.12
 const INCENSE_Z_FRONT = -1.2
 
+const INITIAL_CAMERA = { x: 0, y: 1.7, z: 4.6 }
+const INITIAL_TARGET = [0, 1.3, 0]
+
 function RitualDirector() {
   const { phase, setPhase, refs } = useRitual()
   const camera = useThree((state) => state.camera)
@@ -20,14 +24,72 @@ function RitualDirector() {
 
   useEffect(() => {
     if (phase !== RITUAL_PHASES.START_RITUAL) return
+    if (timeline.current && timeline.current.isActive()) return
+    if (timeline.current) {
+      timeline.current.kill()
+      timeline.current = null
+    }
     timeline.current = playRitualTimeline({ refs, camera, setPhase })
-    return () => {
+  }, [phase, refs, camera, setPhase])
+
+  useEffect(
+    () => () => {
       if (timeline.current) {
         timeline.current.kill()
         timeline.current = null
       }
+    },
+    []
+  )
+
+  return null
+}
+
+function RitualResetDirector() {
+  const { phase, refs } = useRitual()
+  const camera = useThree((state) => state.camera)
+  const controls = useThree((state) => state.controls)
+  const prevPhase = useRef(RITUAL_PHASES.IDLE)
+  const tween = useRef(null)
+
+  useEffect(() => {
+    const prev = prevPhase.current
+    prevPhase.current = phase
+    if (phase !== RITUAL_PHASES.IDLE || prev !== RITUAL_PHASES.RESULT) return
+    if (tween.current) {
+      tween.current.kill()
+      tween.current = null
     }
-  }, [phase, refs, camera, setPhase])
+    if (controls) controls.enabled = false
+    const tw = gsap.timeline({ defaults: { ease: 'power2.inOut' } })
+    tw.to(camera.position, INITIAL_CAMERA, 0)
+    const paper = refs.paper
+    if (paper) {
+      tw.to(paper.position, { x: 0, y: 0.5, z: -1.05, duration: 1.2 }, 0)
+      tw.to(paper.rotation, { x: 0, y: 0, z: 0, duration: 0.9 }, 0)
+      tw.to(paper.scale, { x: 1, y: 1, z: 1, duration: 0.9 }, 0)
+    }
+    const hand = refs.hand
+    if (hand) {
+      tw.to(hand.position, { x: 2.2, y: 0.7, z: -0.4, duration: 1.2 }, 0)
+      tw.to(hand.rotation, { z: 0, duration: 1.2 }, 0)
+    }
+    tw.call(() => {
+      if (controls) {
+        controls.target.set(...INITIAL_TARGET)
+        controls.enabled = true
+        controls.update()
+      }
+    })
+    tween.current = tw
+    return () => {
+      if (tween.current) {
+        tween.current.kill()
+        tween.current = null
+      }
+      if (controls) controls.enabled = true
+    }
+  }, [phase, camera, controls, refs])
 
   return null
 }
@@ -83,6 +145,7 @@ export default function ShrineScene({ interactive = true, onActivate }) {
       </mesh>
 
       <RitualDirector />
+      <RitualResetDirector />
       <AdaptiveDpr pixelated />
 
       <OrbitControls

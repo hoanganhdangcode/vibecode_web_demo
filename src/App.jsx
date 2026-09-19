@@ -3,13 +3,14 @@ import { RitualProvider, useRitual, RITUAL_PHASES } from './context/RitualContex
 import ShrineScene from './components/scene/ShrineScene.jsx'
 import Instruction from './components/ui/Instruction.jsx'
 import FortuneResult from './components/ui/FortuneResult.jsx'
-import { useDailyFortune } from './hooks/useDailyFortune.js'
+import { useDailyFortune, DENY_RETRY_SAME_DAY } from './hooks/useDailyFortune.js'
 import { ensureAudio, playRevealChime } from './sounds/ritualSounds.js'
 
 function Experience() {
-  const { phase, startRitual } = useRitual()
-  const { fortune, ready, canDraw, draw } = useDailyFortune()
-  const showResult = ready && fortune && (!canDraw || phase === RITUAL_PHASES.RESULT)
+  const { phase, startRitual, resetRitual } = useRitual()
+  const { fortune, ready, canDraw, draw, fromStorage, resetToInitial } = useDailyFortune()
+  const showResult =
+    ready && fortune && (fromStorage || phase === RITUAL_PHASES.RESULT)
 
   const onActivate = useCallback(() => {
     if (!ready || !canDraw) return
@@ -17,6 +18,13 @@ function Experience() {
     draw()
     startRitual()
   }, [ready, canDraw, draw, startRitual])
+
+  const onReset = useCallback(() => {
+    if (!ready) return
+    if (phase !== RITUAL_PHASES.IDLE && phase !== RITUAL_PHASES.RESULT) return
+    resetToInitial()
+    resetRitual()
+  }, [ready, phase, resetToInitial, resetRitual])
 
   useEffect(() => {
     if (phase === RITUAL_PHASES.REVEALING) playRevealChime()
@@ -26,7 +34,12 @@ function Experience() {
     <>
       <ShrineScene interactive={canDraw} onActivate={onActivate} />
       <Instruction forceHidden={showResult} />
-      <FortuneResult visible={showResult} fortune={fortune} alreadyRead={!canDraw} />
+      <FortuneResult
+        visible={showResult}
+        fortune={fortune}
+        alreadyRead={fromStorage}
+        onReroll={DENY_RETRY_SAME_DAY ? undefined : onReveal}
+      />
     </>
   )
 }

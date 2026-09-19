@@ -26,17 +26,24 @@ export function RitualProvider({ children }) {
 
   const startRitual = useCallback(() => {
     setPhase((current) =>
-      current === RITUAL_PHASES.IDLE ? RITUAL_PHASES.START_RITUAL : current
+      current === RITUAL_PHASES.IDLE || current === RITUAL_PHASES.RESULT
+        ? RITUAL_PHASES.START_RITUAL
+        : current
     )
   }, [])
+
+  const resetRitual = useCallback(() => {
+    refs.ignite = false
+    setPhase(RITUAL_PHASES.IDLE)
+  }, [refs])
 
   const register = useCallback((name) => (node) => {
     refs[name] = node
   }, [])
 
   const value = useMemo(
-    () => ({ phase, setPhase, startRitual, refs, register }),
-    [phase, refs, register, startRitual]
+    () => ({ phase, setPhase, startRitual, resetRitual, refs, register }),
+    [phase, refs, register, startRitual, resetRitual]
   )
 
   return <RitualContext.Provider value={value}>{children}</RitualContext.Provider>

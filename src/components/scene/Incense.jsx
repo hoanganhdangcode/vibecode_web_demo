@@ -2,13 +2,17 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { AdditiveBlending } from 'three'
 import Smoke from './Smoke.jsx'
-import { useRitual } from '../../context/RitualContext.jsx'
+import { useRitual, RITUAL_PHASES } from '../../context/RitualContext.jsx'
 
 const STICK_X = [-0.07, 0, 0.07]
 const TIP_Y = 1.02
 
 export default function Incense({ position = [0, 0, 1.05] }) {
-  const { refs } = useRitual()
+  const { refs, phase, register } = useRitual()
+  const shown =
+    phase === RITUAL_PHASES.START_RITUAL ||
+    phase === RITUAL_PHASES.LIGHTING_INCENSE ||
+    phase === RITUAL_PHASES.SMOKE
   const flameRefs = useRef([])
   const lightRefs = useRef([])
   const tipRefs = useRef([])
@@ -35,7 +39,7 @@ export default function Incense({ position = [0, 0, 1.05] }) {
   })
 
   return (
-    <group position={position}>
+    <group ref={register('incense')} position={position}>
       {STICK_X.map((x, i) => (
         <group key={x} position={[x, 0, 0]}>
           <mesh position={[0, 0.5, 0]} castShadow>
