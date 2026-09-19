@@ -130,47 +130,25 @@ export default function ShrineScene({ interactive = true, onActivate }) {
         color="#ffb066"
       />
 
-      <group position={[0, 2.4, -1.05]}>
-        <mesh position={[0, 0.9, 0]}>
-          <cylinderGeometry args={[0.008, 0.008, 1.8]} />
+      <group position={[0, 3.6, -1.1]}>
+        <mesh position={[0, 1.15, 0]}>
+          <cylinderGeometry args={[0.008, 0.008, 2.3]} />
           <meshStandardMaterial color="#3a2414" />
         </mesh>
-        <mesh position={[0, -0.28, 0]} castShadow>
-          <sphereGeometry args={[0.16, 24, 24]} />
+        <mesh position={[0, -0.15, 0]} castShadow>
+          <sphereGeometry args={[0.18, 24, 24]} />
           <meshStandardMaterial
             color="#ffd9a0"
             emissive="#ffb066"
-            emissiveIntensity={1.6}
+            emissiveIntensity={1.8}
           />
         </mesh>
         <pointLight
-          position={[0, 1.6, 3]}
-          intensity={0.25}
-          distance={6}
-          color="#ffb066"
+          position={[0, -0.25, 0]}
+          intensity={20}
+          distance={20}
+          color="#ffcf8a"
         />
-
-        <group position={[0, 2.6, -1.05]}>
-          <mesh position={[0, 1.1, 0]}>
-            <cylinderGeometry args={[0.008, 0.008, 2.2]} />
-            <meshStandardMaterial color="#3a2414" />
-          </mesh>
-          <mesh position={[0, -0.08, 0]} castShadow>
-            <sphereGeometry args={[0.14, 24, 24]} />
-            <meshStandardMaterial
-              color="#ffd9a0"
-              emissive="#ffb066"
-              emissiveIntensity={1.8}
-            />
-          </mesh>
-          <pointLight
-            position={[0, -0.35, 0]}
-            intensity={0.8}
-            distance={4}
-            color="#ffd27a"
-          />
-        </group>
-
       </group>
 
       <Atmosphere />
