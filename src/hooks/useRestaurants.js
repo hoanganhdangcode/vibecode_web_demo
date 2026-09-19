@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { NEARBY_PLACES } from '../data/restaurants.js'
 
 // TODO(geo): đọc data quán từ Google Sheets công khai. Yêu cầu sheet ở chế độ
 // "Anyone with the link -> Viewer". Cột header (viết có dấu hay không đều hiểu):
@@ -164,7 +163,7 @@ function readCache() {
 // Singleton: bắt đầu tải 1 lần ngay khi module được import (song song với khởi động app).
 const listeners = new Set()
 const cachedPlaces = readCache()
-let cache = { places: cachedPlaces || NEARBY_PLACES, source: cachedPlaces ? 'sheet' : 'mock' }
+let cache = { places: cachedPlaces || [], source: cachedPlaces ? 'sheet' : 'empty' }
 
 function setData(places, source) {
   cache = { places, source }

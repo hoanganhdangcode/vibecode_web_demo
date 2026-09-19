@@ -311,6 +311,18 @@ body,
   background: transparent;
 }
 
+.nearby-empty {
+  margin: 0;
+  padding: 18px 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-style: italic;
+  color: #a9805a;
+}
+
 .nearby-item {
   display: flex;
   gap: 12px;

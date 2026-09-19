@@ -59,8 +59,6 @@ export default function NearbyPlaces({ visible = false, fortune = null }) {
       .slice(0, 8)
   }, [places, fortunes, fortune, hasLoc, lat, lng, maxM])
 
-  if (!items.length) return null
-
   return (
     <aside className="nearby-box" aria-hidden={!visible}>
       <h2 className="nearby-title">
@@ -80,7 +78,8 @@ export default function NearbyPlaces({ visible = false, fortune = null }) {
           onChange={(e) => setMaxM(Number(e.target.value))}
         />
       </div>
-      <ul className="nearby-list">
+      {items.length ? (
+        <ul className="nearby-list">
         {items.map((p) => (
           <li key={p.name} className="nearby-item">
             {p.avatar && <img className="nearby-avatar" src={p.avatar} alt="" loading="lazy" />}
@@ -108,6 +107,9 @@ export default function NearbyPlaces({ visible = false, fortune = null }) {
           </li>
         ))}
       </ul>
+      ) : (
+        <p className="nearby-empty">Danh sách rỗng</p>
+      )}
     </aside>
   )
 }
