@@ -2,14 +2,13 @@
 // Sheet yêu cầu "Anyone with the link -> Viewer". Mỗi dòng 1 quẻ: id | food | description.
 // Cách reload giống restaurants: load 1 lần lúc khởi động app (singleton, song song),
 // luôn fetch lại sheet ở mỗi lần vào app; localStorage chỉ là cache bootstrap/fallback
-// tạm thời (không có TTL). Giữ fallback dữ liệu mock nếu sheet lỗi. id là key ổn định
-// (1..58) dùng chung với mocks & link quán, nên không cần map theo intent như restaurants.
+// tạm thời (không có TTL). KHÔNG còn mock hardcode: nếu sheet lỗi truy cập thì giữ cache
+// cũ; nếu sheet hợp lệ nhưng rỗng thì xóa list (hiện trống), không nhảy về dữ liệu cũ.
 import { useEffect, useState } from 'react'
-import { FORTUNES } from '../data/fortunes.js'
 
 const SHEET_ID = '10R4BBfOjX5eX1tf4NkDenVb6Io5DITLwj-MizM2v0t4'
 const SHEET_GID = '457287668'
-const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`
+const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:`
 const CACHE_KEY = 'fortunes-live'
 
 const HEADER_KEYS = {
@@ -39,7 +38,9 @@ function mapColumn(key) {
 
 function buildList(body) {
   const table = body && body.table
-  if (!table || !Array.isArray(table.rows) || table.rows.length === 0) return []
+  // body thiếu table -> sheet lỗi truy cập chứ KHÔNG hẳn là rỗng.
+  if (!table) return null
+  if (!Array.isArray(table.rows) || table.rows.length === 0) return []
 
   let colKeys = (table.cols || []).map((c) => mapColumn(normalizeHeader(c && c.label)))
   let startIdx = 0
@@ -58,9 +59,9 @@ function buildList(body) {
     cells.forEach((cell, ci) => {
       const key = colKeys[ci]
       if (!key) return
-      const v = cell && cell.v != null ? cell.v : ''
-      if (v === '' || v == null) return
-      obj[key] = key === 'id' ? String(v).trim() : String(v).trim()
+      const v = cell && cell.v != null ? String(cell.v).trim() : ''
+      if (v === '') return
+      obj[key] = v
     })
     if (obj.id && obj.food) {
       map[obj.id] = { id: obj.id, food: obj.food, description: obj.description || '' }
@@ -69,12 +70,39 @@ function buildList(body) {
   return map
 }
 
+function fetchJsonp() {
+  return new Promise((resolve, reject) => {
+    // Mỗi request 1 callback riêng (tqx responseHandler) -> không đụng slot window.google
+    // nếu sau này có module khác cùng gọi sheet.
+    const cbName = '__webbua_frt_' + Math.random().toString(36).slice(2)
+    let done = false
+    const finish = (err, body) => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
+      const el = document.getElementById(cbName)
+      if (el) el.remove()
+      delete window[cbName]
+      if (err) reject(err)
+      else resolve(body)
+    }
+    const timer = setTimeout(() => finish(new Error('timeout')), 15000)
+    window[cbName] = (body) => finish(null, body)
+    const s = document.createElement('script')
+    s.id = cbName
+    s.src = BASE_URL + cbName + `&gid=${SHEET_GID}`
+    s.onerror = () => finish(new Error('script load error'))
+    document.head.appendChild(s)
+  })
+}
+
 function readCache() {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
     if (raw) {
       const { items } = JSON.parse(raw)
-      if (items && Object.keys(items).length) return items
+      // Load bất kể độ dài (kể cả {} / [] vì sheet đã hợp lệ nhưng rỗng).
+      if (items && typeof items === 'object') return items
     }
   } catch {
     // cache hỏng -> bỏ qua
@@ -83,8 +111,9 @@ function readCache() {
 }
 
 let cacheMap = readCache()
-let source = 'mock'
-let cache = cacheMap ? { fortunes: cacheMap, source: 'sheet' } : { fortunes: { ...FORTUNES }, source: 'mock' }
+let cache = cacheMap
+  ? { fortunes: cacheMap, source: 'sheet' }
+  : { fortunes: {}, source: 'empty' }
 
 const listeners = new Set()
 
@@ -93,56 +122,23 @@ function setData(map, src) {
   listeners.forEach((fn) => fn(cache))
 }
 
-function fetchJsonp() {
-  return new Promise((resolve, reject) => {
-    const id = 'sheet-fortunes-cb'
-    const cleanup = () => {
-      const el = document.getElementById(id)
-      if (el) el.remove()
-      try {
-        delete window.google
-      } catch {
-        window.google = undefined
-      }
-    }
-    window.google = window.google || {}
-    window.google.visualization = window.google.visualization || {}
-    window.google.visualization.Query = window.google.visualization.Query || {}
-    window.google.visualization.Query.setResponse = (body) => {
-      clearTimeout(timer)
-      cleanup()
-      resolve(body)
-    }
-    const timer = setTimeout(() => {
-      cleanup()
-      reject(new Error('timeout'))
-    }, 15000)
-    const s = document.createElement('script')
-    s.id = id
-    s.src = BASE_URL
-    s.onerror = () => {
-      clearTimeout(timer)
-      cleanup()
-      reject(new Error('script load error'))
-    }
-    document.head.appendChild(s)
-  })
-}
-
 function startLoad() {
   fetchJsonp()
     .then(buildList)
     .then((map) => {
-      if (!map || !Object.keys(map).length) return
+      // map === null: sheet lỗi truy cập -> giữ cache hiện có, không ghi đè.
+      // map rỗng: sheet hợp lệ nhưng chưa có quẻ -> xóa list/cache cũ, không về hardcode.
+      if (map == null) return
+      if (Array.isArray(map) && map.length === 0) map = {}
       setData(map, 'sheet')
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items: map }))
       } catch {
-        // cache hỏng -> bỏ qua
+        // bỏ qua
       }
     })
     .catch(() => {
-      // sheet lỗi -> giữ mock/cache hiện tại
+      // sheet lỗi/timeout -> giữ cache hiện có, load lại lần vào app sau
     })
 }
 

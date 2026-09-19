@@ -47,6 +47,7 @@ export function useDailyFortune() {
   const draw = useCallback(() => {
     const today = todayKey()
     const ids = Object.keys(fortunes)
+    if (!ids.length) return null
     const pickedId = ids[Math.floor(Math.random() * ids.length)]
     const picked = { id: pickedId, ...fortunes[pickedId] }
     try {

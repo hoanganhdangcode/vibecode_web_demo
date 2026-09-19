@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react'
 // TODO(geo): đọc data quán từ Google Sheets công khai. Yêu cầu sheet ở chế độ
 // "Anyone with the link -> Viewer". Cột header (viết có dấu hay không đều hiểu):
 // name | avatar | food | lat | lng | shopee | grab | phone | pay
-// - food: list ID quẻ (khớp id trong data/fortunes.js) quán phục vụ, cách nhau bằng |
+// - food: list ID quẻ (khớp id trong tab "Quẻ" trên sheet) quán phục vụ, cách nhau bằng |
 //   (khuyên nên bọc | hai đầu như "|1|2|") -> match quẻ khi id quẻ nằm trong food
 // - pay: số tiền quán tài trợ quảng cáo (VD: 500000, 500.000, 500k, 5tr) -> quán
 //   trả nhiều hơn xếp trước
 const SHEET_ID = '10R4BBfOjX5eX1tf4NkDenVb6Io5DITLwj-MizM2v0t4'
 const SHEET_GID = '0'
-const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`
+const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:`
 const CACHE_KEY = 'restaurants-live'
 
 const HEADER_KEYS = {
@@ -58,7 +58,9 @@ function mapColumn(key) {
 
 function buildList(body) {
   const table = body && body.table
-  if (!table || !Array.isArray(table.rows) || table.rows.length === 0) return []
+  // body thiếu table -> sheet lỗi truy cập (chưa share / sai id) chứ KHÔNG hẳn là rỗng.
+  if (!table) return null
+  if (!Array.isArray(table.rows) || table.rows.length === 0) return []
 
   const colLabels = (table.cols || []).map((c) => normalizeHeader(c && c.label))
   let mapping = colLabels.map(mapColumn)
@@ -113,36 +115,27 @@ function buildList(body) {
 
 function fetchSheetJsonp() {
   return new Promise((resolve, reject) => {
-    const id = '__sheets_cb_' + Math.random().toString(36).slice(2)
-    const cleanup = () => {
-      const el = document.getElementById(id)
+    // Mỗi request 1 callback riêng (tqx responseHandler) -> không đụng slot
+    // google.visualization (*) dùng chung với useFortunes, tránh nuốt callback nhau.
+    // (*) Ở đây ta không đụng tới window.google nữa.
+    const cbName = '__webbua_rst_' + Math.random().toString(36).slice(2)
+    let done = false
+    const finish = (err, body) => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
+      const el = document.getElementById(cbName)
       if (el) el.remove()
-      try {
-        delete window.google
-      } catch {
-        window.google = undefined
-      }
+      delete window[cbName]
+      if (err) reject(err)
+      else resolve(body)
     }
-    window.google = window.google || {}
-    window.google.visualization = window.google.visualization || {}
-    window.google.visualization.Query = window.google.visualization.Query || {}
-    window.google.visualization.Query.setResponse = (body) => {
-      clearTimeout(timer)
-      cleanup()
-      resolve(body)
-    }
-    const timer = setTimeout(() => {
-      cleanup()
-      reject(new Error('timeout'))
-    }, 15000)
+    const timer = setTimeout(() => finish(new Error('timeout')), 15000)
+    window[cbName] = (body) => finish(null, body)
     const s = document.createElement('script')
-    s.id = id
-    s.src = BASE_URL
-    s.onerror = () => {
-      clearTimeout(timer)
-      cleanup()
-      reject(new Error('script load error'))
-    }
+    s.id = cbName
+    s.src = BASE_URL + cbName + `&gid=${SHEET_GID}`
+    s.onerror = () => finish(new Error('script load error'))
     document.head.appendChild(s)
   })
 }
@@ -152,7 +145,8 @@ function readCache() {
     const cached = localStorage.getItem(CACHE_KEY)
     if (cached) {
       const { items } = JSON.parse(cached)
-      if (Array.isArray(items) && items.length) return items
+      // Load bất kể độ dài (kể cả [] vì sheet đã hợp lệ nhưng rỗng) — không nhảy cóc tới sheet cũ.
+      if (Array.isArray(items)) return items
     }
   } catch {
     // cache hỏng -> bỏ qua
@@ -174,17 +168,18 @@ function startLoad() {
   fetchSheetJsonp()
     .then(buildList)
     .then((items) => {
-      if (Array.isArray(items) && items.length) {
-        setData(items, 'sheet')
-        try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }))
-        } catch {
-          // bỏ qua
-        }
+      // items === null: sheet lỗi truy cập -> giữ cache hiện có, không ghi đè.
+      // items rỗng: sheet hợp lệ nhưng chưa có quán -> xóa list/cache cũ (khác xưa giữ mãi).
+      if (items == null) return
+      setData(items, 'sheet')
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }))
+      } catch {
+        // bỏ qua
       }
     })
     .catch(() => {
-      // fetch lỗi -> giữ cache/mock hiện có, không ghi đè
+      // fetch lỗi/timeout -> giữ cache hiện có, load lại lần vào app sau
     })
 }
 
