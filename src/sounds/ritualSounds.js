@@ -34,6 +34,19 @@ export function playIgnitePop() {
   }
 }
 
+function makeImpulse(c, seconds, decay) {
+  const rate = c.sampleRate
+  const len = Math.floor(rate * seconds)
+  const impulse = c.createBuffer(2, len, rate)
+  for (let ch = 0; ch < 2; ch++) {
+    const data = impulse.getChannelData(ch)
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay)
+    }
+  }
+  return impulse
+}
+
 export function playRevealChime() {
   const c = getCtx()
   if (!c) return
@@ -41,23 +54,32 @@ export function playRevealChime() {
     const now = c.currentTime
     const f0 = 196
     const partials = [
-      { r: 1.0, a: 0.9, d: 3.4 },
-      { r: 2.05, a: 0.45, d: 2.3 },
-      { r: 2.65, a: 0.26, d: 1.9 },
-      { r: 3.43, a: 0.16, d: 1.5 },
-      { r: 4.32, a: 0.11, d: 1.1 },
-      { r: 5.62, a: 0.06, d: 0.8 },
+      { r: 1.0, a: 1.0, d: 3.8 },
+      { r: 2.05, a: 0.5, d: 2.6 },
+      { r: 2.65, a: 0.3, d: 2.1 },
+      { r: 3.43, a: 0.19, d: 1.6 },
+      { r: 4.32, a: 0.13, d: 1.2 },
+      { r: 5.62, a: 0.08, d: 0.9 },
     ]
+
+    const wet = c.createGain()
+    wet.gain.value = 0.45
+    const conv = c.createConvolver()
+    conv.buffer = makeImpulse(c, 3.4, 1.8)
+    wet.connect(conv)
+    conv.connect(c.destination)
+
     partials.forEach((p) => {
       const osc = c.createOscillator()
       const gain = c.createGain()
       osc.type = 'sine'
       osc.frequency.value = f0 * p.r
       gain.gain.setValueAtTime(0.0001, now)
-      gain.gain.exponentialRampToValueAtTime(p.a * 0.1, now + 0.012)
+      gain.gain.exponentialRampToValueAtTime(p.a * 0.16, now + 0.015)
       gain.gain.exponentialRampToValueAtTime(0.0001, now + p.d)
       osc.connect(gain)
       gain.connect(c.destination)
+      gain.connect(wet)
       osc.start(now)
       osc.stop(now + p.d + 0.1)
     })
@@ -74,10 +96,11 @@ export function playRevealChime() {
     filter.type = 'lowpass'
     filter.frequency.value = 1100
     const nGain = c.createGain()
-    nGain.gain.value = 0.05
+    nGain.gain.value = 0.06
     src.connect(filter)
     filter.connect(nGain)
     nGain.connect(c.destination)
+    nGain.connect(wet)
     src.start(now, 0, noiseLen)
   } catch {
     // audio is best-effort
