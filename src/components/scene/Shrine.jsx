@@ -10,6 +10,7 @@ export default function Shrine({
   z = -3.4,
   rotateY = 0,
   castShadow = false,
+  onBox = null,
   signVisible = true,
   signX0 = 0.09,
   signX1 = 0.91,
@@ -41,19 +42,33 @@ export default function Shrine({
         obj.receiveShadow = false
       }
     })
-    setSign({
+setSign({
       position: [
         0,
         (((signY0 + signY1) / 2) * height - g.position.y) / scale,
         (g.position.z + box.max.z * scale - signRecess - signDepth / 2 - g.position.z) /
-        scale,
+          scale,
       ],
       w: ((signX1 - signX0) * size.x * scale) / scale,
       h: ((signY1 - signY0) * size.y * scale) / scale,
       d: signDepth / scale,
     })
+    if (onBox) {
+      onBox({
+        min: new THREE.Vector3(
+          box.min.x * scale + g.position.x,
+          box.min.y * scale + g.position.y,
+          box.min.z * scale + g.position.z
+        ),
+        max: new THREE.Vector3(
+          box.max.x * scale + g.position.x,
+          box.max.y * scale + g.position.y,
+          box.max.z * scale + g.position.z
+        ),
+      })
+    }
     setReady(true)
-  }, [model, height, z, rotateY, castShadow, signX0, signX1, signY0, signY1, signRecess, signDepth])
+  }, [model, height, z, rotateY, castShadow, signX0, signX1, signY0, signY1, signRecess, signDepth, onBox])
 
   return (
     <group ref={group} visible={ready}>

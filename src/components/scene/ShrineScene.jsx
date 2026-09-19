@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { AdaptiveDpr, OrbitControls } from '@react-three/drei'
 import Shrine from './Shrine.jsx'
@@ -9,6 +9,9 @@ import RitualHand from './RitualHand.jsx'
 import Atmosphere from '../effects/Atmosphere.jsx'
 import { playRitualTimeline } from '../../animations/ritualTimeline.js'
 import { useRitual, RITUAL_PHASES } from '../../context/RitualContext.jsx'
+
+const INCENSE_Y = 0.12
+const INCENSE_Z_FRONT = -1.2
 
 function RitualDirector() {
   const { phase, setPhase, refs } = useRitual()
@@ -32,7 +35,15 @@ function RitualDirector() {
 export default function ShrineScene({ interactive = true, onActivate }) {
   const { phase } = useRitual()
   const isIdle = phase === RITUAL_PHASES.IDLE
-  const orbitEnabled = isIdle || phase === RITUAL_PHASES.RESULT
+  const isResult = phase === RITUAL_PHASES.RESULT
+  const orbitEnabled = isIdle || isResult
+  const [shrineBox, setShrineBox] = useState(null)
+
+  const incensePos = useMemo(() => {
+    if (!shrineBox) return null
+    const h = shrineBox.max.y - shrineBox.min.y
+    return [0, shrineBox.min.y + INCENSE_Y * h, shrineBox.max.z + INCENSE_Z_FRONT]
+  }, [shrineBox])
 
   return (
     <Canvas
@@ -59,10 +70,10 @@ export default function ShrineScene({ interactive = true, onActivate }) {
 
       <Atmosphere />
       <Suspense fallback={null}>
-        <Shrine />
+        <Shrine onBox={setShrineBox} />
       </Suspense>
       <FortuneJar position={[0, 0.5, -1.05]} interactive={interactive} onActivate={onActivate} />
-      <Incense position={[0, 0.5, -1.35]} />
+      {incensePos && <Incense position={incensePos} />}
       <FortunePaper position={[0, 0.5, -1.05]} />
       <RitualHand />
 

@@ -4,7 +4,7 @@ import { AdditiveBlending } from 'three'
 import Smoke from './Smoke.jsx'
 import { useRitual } from '../../context/RitualContext.jsx'
 
-const STICK_X = [-0.18, 0, 0.18]
+const STICK_X = [-0.07, 0, 0.07]
 const TIP_Y = 1.02
 
 export default function Incense({ position = [0, 0, 1.05] }) {
