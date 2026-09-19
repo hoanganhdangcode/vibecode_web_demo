@@ -4,12 +4,12 @@ export default function FortuneResult({ visible = false, fortune = null, already
   return (
     <div className={`fortune-result ${visible ? 'visible' : ''}`} aria-hidden={!visible}>
       <div className="fortune-card">
-        <div className="fortune-kicker">{alreadyRead ? 'Quẻ hôm nay đã gieo' : '✦ quẻ của bạn ✦'}</div>
-        <h1 className="fortune-name">Quẻ {fortune.food}</h1>
+        <div className="fortune-kicker">{alreadyRead ? 'Quẻ hôm nay đã gieo' : 'Quẻ của bạn'}</div>
+        <h1 className="fortune-name">{fortune.food}</h1>
         <p className="fortune-desc">{fortune.description}</p>
         {onReset && (
           <button type="button" className="fortune-reroll" onClick={onReset}>
-            ✦ Rút lại ✦
+            Rút lại
           </button>
         )}
       </div>
