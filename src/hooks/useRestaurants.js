@@ -2,18 +2,15 @@ import { useEffect, useState } from 'react'
 import { NEARBY_PLACES } from '../data/restaurants.js'
 
 // TODO(geo): đọc data quán từ Google Sheets công khai. Yêu cầu sheet ở chế độ
-// "Anyone with the link -> Viewer". Cột header đề xuất (viết được tiếng Việt có dấu
-// hoặc không dấu đều hiểu): name | avatar | food | lat | lng | shopee | grab | phone
-// - food: nhiều món cách nhau bằng dấu phẩy hoặc | (VD: "bún đậu, mắm tôm")
-// - avatar: link ảnh (hoặc để trống -> không ảnh)
+// "Anyone with the link -> Viewer". Cột header (viết có dấu hay không đều hiểu):
+// name | avatar | food | intents | lat | lng | shopee | grab | phone
+// - intents: tên quẻ `food` đã chuẩn hóa (UPPERCASE, bỏ dấu, bỏ cách), cách nhau bằng |
+// - food/intents: nhiều giá trị cách nhau bằng dấu phẩy hoặc |
 // - shopee/grab/phone: để trống -> ẩn nút tương ứng
-// - intents: list ý định chung của quán, dùng token giống `intents` của quẻ trong
-//   data/fortunes.js, cách nhau bằng | (VD: "bún|mắm|tôm") -> ghép quẻ vừa gieo với quán
 const SHEET_ID = '10R4BBfOjX5eX1tf4NkDenVb6Io5DITLwj-MizM2v0t4'
 const SHEET_GID = '0'
 const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`
 const CACHE_KEY = 'restaurants-live'
-const CACHE_TTL = 6 * 60 * 60 * 1000
 
 const HEADER_KEYS = {
   name: 'name',
@@ -131,38 +128,49 @@ function fetchSheetJsonp() {
 }
 
 export function useRestaurants() {
-  const [places, setPlaces] = useState(NEARBY_PLACES)
+  const [state, setState] = useState({ places: NEARBY_PLACES, source: 'mock' })
 
   useEffect(() => {
     let cancelled = false
-    try {
-      const cached = localStorage.getItem(CACHE_KEY)
-      if (cached) {
-        const { ts, items } = JSON.parse(cached)
-        if (Date.now() - ts < CACHE_TTL && Array.isArray(items) && items.length) {
-          setPlaces(items)
-          return
+
+    const apply = (items) => {
+      if (cancelled) return
+      if (Array.isArray(items) && items.length) {
+        setState({ places: items, source: 'sheet' })
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }))
+        } catch {
+          // lưu cache hỏng -> bỏ qua
         }
       }
-    } catch {
-      // cache hỏng -> bỏ qua
     }
 
+    // Luôn gọi mới mỗi khi mount (mỗi lần box hiển thị) -> sửa sheet là thấy ngay.
     fetchSheetJsonp()
       .then(buildList)
       .then((items) => {
         if (cancelled) return
         if (items.length) {
-          setPlaces(items)
-          try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }))
-          } catch {
-            // lưu cache hỏng -> bỏ qua
-          }
+          apply(items)
+        } else {
+          throw new Error('sheet empty')
         }
       })
       .catch(() => {
-        // không kéo được sheet -> giữ mock data
+        // fallback: cache cũ -> mock local
+        let fromCache = null
+        try {
+          const cached = localStorage.getItem(CACHE_KEY)
+          if (cached) {
+            const { items } = JSON.parse(cached)
+            if (Array.isArray(items) && items.length) fromCache = items
+          }
+        } catch {
+          // bỏ qua
+        }
+        if (cancelled) return
+        if (fromCache) setState({ places: fromCache, source: 'sheet' })
+        else setState({ places: NEARBY_PLACES, source: 'mock' })
       })
 
     return () => {
@@ -170,5 +178,5 @@ export function useRestaurants() {
     }
   }, [])
 
-  return places
+  return state
 }
