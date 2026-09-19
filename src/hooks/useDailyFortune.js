@@ -27,7 +27,7 @@ export function useDailyFortune() {
       const storedDate = localStorage.getItem(DATE_KEY)
       const storedId = localStorage.getItem(RESULT_KEY)
       if (storedDate === today && storedId) {
-        const saved = FORTUNES.find((f) => f.id === storedId) || null
+        const saved = FORTUNES[storedId] ? { id: storedId, ...FORTUNES[storedId] } : null
         if (saved) {
           setFortune(saved)
           setCanDraw(DENY_RETRY_SAME_DAY ? false : true)
@@ -42,10 +42,12 @@ export function useDailyFortune() {
 
   const draw = useCallback(() => {
     const today = todayKey()
-    const picked = FORTUNES[Math.floor(Math.random() * FORTUNES.length)]
+    const ids = Object.keys(FORTUNES)
+    const pickedId = ids[Math.floor(Math.random() * ids.length)]
+    const picked = { id: pickedId, ...FORTUNES[pickedId] }
     try {
       localStorage.setItem(DATE_KEY, today)
-      localStorage.setItem(RESULT_KEY, picked.id)
+      localStorage.setItem(RESULT_KEY, pickedId)
     } catch {
       // persist best-effort only
     }
