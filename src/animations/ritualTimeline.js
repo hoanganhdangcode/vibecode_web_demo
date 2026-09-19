@@ -29,10 +29,10 @@ export function playRitualTimeline({ refs, camera, setPhase }) {
     const ix = incense ? incense.position.x : 0
     const iy = incense ? incense.position.y : 0
     const iz = incense ? incense.position.z : 0
-    tl.to(hand.position, { x: ix + 0.22, y: iy + 0.85, z: iz + 0.3, duration: 0.5, ease: 'power2.inOut' }, 0.15)
-      .to(hand.rotation, { z: -0.35, duration: 0.5, ease: 'power2.inOut' }, 0.15)
-      .to(hand.position, { x: 2.2, y: 0.7, z: -0.4, duration: 0.55, ease: 'power2.inOut' }, 0.85)
-      .to(hand.rotation, { z: 0, duration: 0.55, ease: 'power2.inOut' }, 0.85)
+    tl.to(hand.position, { x: ix + 0.18, y: iy + 0.6, z: iz + 0.28, duration: 0.55, ease: 'power2.inOut' }, 0.15)
+      .to(hand.rotation, { z: -0.3, duration: 0.55, ease: 'power2.inOut' }, 0.15)
+      .to(hand.position, { x: 2.2, y: 0.7, z: -0.4, duration: 0.5, ease: 'power2.inOut' }, 1.6)
+      .to(hand.rotation, { z: 0, duration: 0.5, ease: 'power2.inOut' }, 1.6)
   }
 
   tl.call(() => setPhase(RITUAL_PHASES.SMOKE), [], 0.4)
