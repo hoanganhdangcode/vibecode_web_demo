@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useRestaurants } from '../../hooks/useRestaurants.js'
+import { useFortunes } from '../../hooks/useFortunes.js'
 import { useUserLocation } from '../../hooks/useUserLocation.js'
 import { haversine, formatDistance } from '../../utils/geo.js'
 
@@ -7,43 +8,50 @@ const MAX_KM = 10
 
 export default function NearbyPlaces({ visible = false, fortune = null }) {
   const { places } = useRestaurants()
+  const { fortunes } = useFortunes()
   const { lat, lng } = useUserLocation()
   const hasLoc = lat != null && lng != null
   const [maxKm, setMaxKm] = useState(MAX_KM)
 
   const items = useMemo(() => {
     // TODO(geo): xử lý fallback khi sheet trống - hiện đang dùng mock local.
-    let list = places
-    if (fortune) {
-      const key = (s) => String(s).trim().toLowerCase()
-      const star = (fortune.intents || []).map(key)
-      const matches = (p) => {
-        const pIt = p.intents && p.intents.length ? p.intents : p.food || []
-        if (star.length && pIt.length) {
-          const pKeys = pIt.map(key)
-          const overlap = star.filter((s) => pKeys.includes(s)).length
-          return overlap > 0
-        }
-        const q = fortune.food.trim().toLowerCase()
-        return pIt.some((f) => key(f) === q || key(f).includes(q) || q.includes(key(f)))
-      }
-      list = [...places.filter(matches), ...places.filter((p) => !matches(p))]
+    // Food quán lưu dạng "|1|2|"; quẻ khớp khi chuỗi này contains "|id|"
+    // (tránh nhầm id 5 với 55 vì "|55|" không chứa "|5|").
+    const qId = fortune ? String(fortune.id) : ''
+    const isMatch = (p) => {
+      if (qId === '') return false
+      const delimited =
+        '|' +
+        (p.food || [])
+          .map((id) => String(id).trim())
+          .join('|') +
+        '|'
+      return delimited.includes('|' + qId + '|')
     }
-    return list
+    const far = (d) => (d == null ? Number.MAX_SAFE_INTEGER : d)
+
+    return places
       .map((p, i) => ({
         ...p,
+        matched: isMatch(p),
+        pay: Number(p.pay) || 0,
+        dishNames: (p.food || []).map((id) => fortunes[id] && fortunes[id].food).filter(Boolean),
         distanceKm: hasLoc ? haversine(lat, lng, p.lat, p.lng) : null,
         _i: i,
       }))
+      // 1. contains id: chỉ quán có id quẻ vừa gieo trong food
+      .filter((p) => p.matched)
+      // 2. phạm vi: chỉ quán trong maxKm (hoặc chưa có vị trí)
+      .filter((p) => !hasLoc || p.distanceKm == null || p.distanceKm <= maxKm)
+      // 3. pay desc: trả nhiều xếp trước, cùng tiền thì gần xếp trước
       .sort(
         (a, b) =>
-          (a.distanceKm == null ? Number.MAX_SAFE_INTEGER : a.distanceKm) -
-          (b.distanceKm == null ? Number.MAX_SAFE_INTEGER : b.distanceKm) ||
+          b.pay - a.pay ||
+          far(a.distanceKm) - far(b.distanceKm) ||
           a._i - b._i
       )
-      .filter((p) => !hasLoc || p.distanceKm == null || p.distanceKm <= maxKm)
       .slice(0, 8)
-  }, [places, fortune, hasLoc, lat, lng, maxKm])
+  }, [places, fortunes, fortune, hasLoc, lat, lng, maxKm])
 
   if (!items.length) return null
 
@@ -72,9 +80,9 @@ export default function NearbyPlaces({ visible = false, fortune = null }) {
             {p.avatar && <img className="nearby-avatar" src={p.avatar} alt="" loading="lazy" />}
             <div className="nearby-info">
               <span className="nearby-name">{p.name}</span>
-              {(p.food[0] || p.distanceKm != null) && (
+              {(p.dishNames?.[0] || p.distanceKm != null) && (
                 <span className="nearby-meta">
-                  {[p.food[0], formatDistance(p.distanceKm)].filter(Boolean).join(' · ')}
+                  {[p.dishNames?.[0], formatDistance(p.distanceKm)].filter(Boolean).join(' · ')}
                 </span>
               )}
               <div className="nearby-actions">

@@ -3,10 +3,11 @@ import { NEARBY_PLACES } from '../data/restaurants.js'
 
 // TODO(geo): đọc data quán từ Google Sheets công khai. Yêu cầu sheet ở chế độ
 // "Anyone with the link -> Viewer". Cột header (viết có dấu hay không đều hiểu):
-// name | avatar | food | intents | lat | lng | shopee | grab | phone
-// - intents: tên quẻ `food` đã chuẩn hóa (UPPERCASE, bỏ dấu, bỏ cách), cách nhau bằng |
-// - food/intents: nhiều giá trị cách nhau bằng dấu phẩy hoặc |
-// - shopee/grab/phone: để trống -> ẩn nút tương ứng
+// name | avatar | food | lat | lng | shopee | grab | phone | pay
+// - food: list ID quẻ (khớp id trong data/fortunes.js) quán phục vụ, cách nhau bằng |
+//   (khuyên nên bọc | hai đầu như "|1|2|") -> match quẻ khi id quẻ nằm trong food
+// - pay: số tiền quán tài trợ quảng cáo (VD: 500000, 500.000, 500k, 5tr) -> quán
+//   trả nhiều hơn xếp trước
 const SHEET_ID = '10R4BBfOjX5eX1tf4NkDenVb6Io5DITLwj-MizM2v0t4'
 const SHEET_GID = '0'
 const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`
@@ -16,12 +17,28 @@ const HEADER_KEYS = {
   name: 'name',
   avatar: 'avatar',
   food: 'food',
-  intents: 'intents',
   lat: 'lat',
   lng: 'lng',
   shopee: 'shopee',
   grab: 'grab',
   phone: 'phone',
+  pay: 'pay',
+}
+
+function toPay(v) {
+  if (v == null || v === '') return 0
+  let s = String(v).replace(/\s+/g, '').toLowerCase()
+  let mult = 1
+  if (s.endsWith('tr')) {
+    mult = 1e6
+    s = s.slice(0, -2)
+  } else if (s.endsWith('k')) {
+    mult = 1e3
+    s = s.slice(0, -1)
+  }
+  s = s.replace(/\./g, '').replace(',', '.')
+  const n = Number(s)
+  return Number.isFinite(n) ? Math.round(n * mult) : 0
 }
 
 function deaccent(s) {
@@ -82,6 +99,10 @@ function buildList(body) {
           .split(/[,|]/)
           .map((s) => s.trim())
           .filter(Boolean)
+        return
+      }
+      if (key === 'pay') {
+        obj[key] = toPay(v)
         return
       }
       obj[key] = String(v).trim()

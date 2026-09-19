@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FORTUNES } from '../data/fortunes.js'
+import { useFortunes } from './useFortunes.js'
+import { useConfig } from './useConfig.js'
 
 const DATE_KEY = 'fortune-date'
 const RESULT_KEY = 'fortune-result'
 
-// Khi true: giữ logic hiện tại — mỗi ngày chỉ gieo đúng 1 lần (reload không gieo lại).
-// Khi false: cho phép gieo lại trong ngày, card kết quả hiện nút "Rút lại".
-export const DENY_RETRY_SAME_DAY = false //cho phép rút lại, do not edit.
+// DENY_RETRY_SAME_DAY đọc từ tab "Config" trên Google Sheets (useConfig).
+// - true: mỗi ngày chỉ gieo đúng 1 lần (reload không gieo lại)
+// - false: cho phép gieo lại trong ngày, card kết quả hiện nút "Rút lại"
 
 function todayKey() {
   const d = new Date()
@@ -16,6 +17,9 @@ function todayKey() {
 }
 
 export function useDailyFortune() {
+  const { fortunes } = useFortunes()
+  const { config } = useConfig()
+  const denyRetry = config.DENY_RETRY_SAME_DAY
   const [fortune, setFortune] = useState(null)
   const [ready, setReady] = useState(false)
   const [canDraw, setCanDraw] = useState(true)
@@ -27,10 +31,10 @@ export function useDailyFortune() {
       const storedDate = localStorage.getItem(DATE_KEY)
       const storedId = localStorage.getItem(RESULT_KEY)
       if (storedDate === today && storedId) {
-        const saved = FORTUNES[storedId] ? { id: storedId, ...FORTUNES[storedId] } : null
+        const saved = fortunes[storedId] ? { id: storedId, ...fortunes[storedId] } : null
         if (saved) {
           setFortune(saved)
-          setCanDraw(DENY_RETRY_SAME_DAY ? false : true)
+          setCanDraw(denyRetry ? false : true)
           setFromStorage(true)
         }
       }
@@ -38,13 +42,13 @@ export function useDailyFortune() {
       // localStorage inaccessible (private mode) -> treat as no data
     }
     setReady(true)
-  }, [])
+  }, [fortunes, denyRetry])
 
   const draw = useCallback(() => {
     const today = todayKey()
-    const ids = Object.keys(FORTUNES)
+    const ids = Object.keys(fortunes)
     const pickedId = ids[Math.floor(Math.random() * ids.length)]
-    const picked = { id: pickedId, ...FORTUNES[pickedId] }
+    const picked = { id: pickedId, ...fortunes[pickedId] }
     try {
       localStorage.setItem(DATE_KEY, today)
       localStorage.setItem(RESULT_KEY, pickedId)
@@ -55,7 +59,7 @@ export function useDailyFortune() {
     setCanDraw(false)
     setFromStorage(false)
     return picked
-  }, [])
+  }, [fortunes])
 
   const resetToInitial = useCallback(() => {
     setCanDraw(true)
