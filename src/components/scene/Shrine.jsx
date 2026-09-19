@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import Signboard from './Signboard.jsx'
 
 const MODEL_URL = '/models/truongcongl.glb'
 
@@ -9,9 +10,17 @@ export default function Shrine({
   z = -3.4,
   rotateY = 0,
   castShadow = false,
+  signVisible = true,
+  signX0 = 0.09,
+  signX1 = 0.91,
+  signY0 = 0.58,
+  signY1 = 0.79,
+  signRecess = 1.345,
+  signDepth = 0.08,
 }) {
   const group = useRef(null)
   const [ready, setReady] = useState(false)
+  const [sign, setSign] = useState({})
   const { scene } = useGLTF(MODEL_URL)
 
   const model = useMemo(() => scene.clone(true), [scene])
@@ -32,12 +41,26 @@ export default function Shrine({
         obj.receiveShadow = false
       }
     })
+    setSign({
+      position: [
+        0,
+        (((signY0 + signY1) / 2) * height - g.position.y) / scale,
+        (g.position.z + box.max.z * scale - signRecess - signDepth / 2 - g.position.z) /
+        scale,
+      ],
+      w: ((signX1 - signX0) * size.x * scale) / scale,
+      h: ((signY1 - signY0) * size.y * scale) / scale,
+      d: signDepth / scale,
+    })
     setReady(true)
-  }, [model, height, z, rotateY, castShadow])
+  }, [model, height, z, rotateY, castShadow, signX0, signX1, signY0, signY1, signRecess, signDepth])
 
   return (
     <group ref={group} visible={ready}>
       <primitive object={model} />
+      {signVisible && ready && (
+        <Signboard position={sign.position} width={sign.w} height={sign.h} depth={sign.d} />
+      )}
       <pointLight
         position={[0, 2.4, -1.6]}
         intensity={0.45}
