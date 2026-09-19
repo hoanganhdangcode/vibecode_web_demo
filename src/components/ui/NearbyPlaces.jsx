@@ -4,14 +4,20 @@ import { useFortunes } from '../../hooks/useFortunes.js'
 import { useUserLocation } from '../../hooks/useUserLocation.js'
 import { haversine, formatDistance } from '../../utils/geo.js'
 
-const MAX_KM = 10
+const MAX_M = 10000
+
+const formatRange = (m) =>
+  m >= 1000
+    ? (m % 1000 === 0 ? `${m / 1000}` : (m / 1000).toFixed(1)).replace('.', ',') + ' km'
+    : `${m} m`
 
 export default function NearbyPlaces({ visible = false, fortune = null }) {
   const { places } = useRestaurants()
   const { fortunes } = useFortunes()
   const { lat, lng } = useUserLocation()
   const hasLoc = lat != null && lng != null
-  const [maxKm, setMaxKm] = useState(MAX_KM)
+  const [maxM, setMaxM] = useState(MAX_M)
+  const rangeLabel = hasLoc ? formatRange(maxM) : '...'
 
   const items = useMemo(() => {
     // TODO(geo): xử lý fallback khi sheet trống - hiện đang dùng mock local.
@@ -41,8 +47,8 @@ export default function NearbyPlaces({ visible = false, fortune = null }) {
       }))
       // 1. contains id: chỉ quán có id quẻ vừa gieo trong food
       .filter((p) => p.matched)
-      // 2. phạm vi: chỉ quán trong maxKm (hoặc chưa có vị trí)
-      .filter((p) => !hasLoc || p.distanceKm == null || p.distanceKm <= maxKm)
+      // 2. phạm vi: chỉ quán trong maxM (hoặc chưa có vị trí)
+      .filter((p) => !hasLoc || p.distanceKm == null || p.distanceKm <= maxM / 1000)
       // 3. pay desc: trả nhiều xếp trước, cùng tiền thì gần xếp trước
       .sort(
         (a, b) =>
@@ -51,28 +57,28 @@ export default function NearbyPlaces({ visible = false, fortune = null }) {
           a._i - b._i
       )
       .slice(0, 8)
-  }, [places, fortunes, fortune, hasLoc, lat, lng, maxKm])
+  }, [places, fortunes, fortune, hasLoc, lat, lng, maxM])
 
   if (!items.length) return null
 
   return (
     <aside className="nearby-box" aria-hidden={!visible}>
-      <h2 className="nearby-title">Quán gần đây</h2>
+      <h2 className="nearby-title">
+        Quán gần đây
+        <span className="nearby-title-chip">{rangeLabel}</span>
+      </h2>
       <div className="nearby-filter">
         <label htmlFor="nearby-range">Trong phạm vi</label>
         <input
           id="nearby-range"
           type="range"
-          min={1}
-          max={MAX_KM}
-          step={0.5}
-          value={maxKm}
+          min={100}
+          max={MAX_M}
+          step={100}
+          value={maxM}
           disabled={!hasLoc}
-          onChange={(e) => setMaxKm(Number(e.target.value))}
+          onChange={(e) => setMaxM(Number(e.target.value))}
         />
-        <span className="nearby-range-value">
-          {hasLoc ? `${maxKm} km` : 'xác định vị trí...'}
-        </span>
       </div>
       <ul className="nearby-list">
         {items.map((p) => (
