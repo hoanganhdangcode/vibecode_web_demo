@@ -146,7 +146,7 @@ export default function ShrineScene({ interactive = true, onActivate }) {
         <pointLight
           position={[0, -0.25, 0]}
           intensity={20}
-          distance={20}
+          distance={50}
           color="#ffcf8a"
         />
       </group>
